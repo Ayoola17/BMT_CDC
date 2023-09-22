@@ -52,4 +52,3 @@ api_endpoint = 'https://meterapi.ylu.agency/api/AMISQL/KafkaSink'
 
 pusher = consumer_to_api(kafka_bootstrap_servers, kafka_topic, api_endpoint)
 pusher.consume_and_push()
-
