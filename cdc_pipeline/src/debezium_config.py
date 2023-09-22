@@ -59,5 +59,3 @@ def configure_debezium():
 
 
 
-
-
