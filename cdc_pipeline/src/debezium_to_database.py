@@ -1,3 +1,4 @@
+import os
 import json
 import requests
 import pymssql
@@ -5,6 +6,19 @@ from kafka import KafkaConsumer
 from datetime import datetime, timedelta
 
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+
+# Load the environment variables from .env file
+load_dotenv()
+
+# Read he environment variables
+mssql_hostname = os.getenv('MSSQL_HOSTNAME')
+mssql_port = os.getenv('MSSQL_PORT')
+mssql_user = os.getenv('MSSQL_USER')
+mssql_password = os.getenv('MSSQL_PASSWORD')
+
+
+mssql_connector = "mssql_config"
 
 def convert_to_datetime(reading_dt):
     # Convert from 100-nanosecond intervals since January 1, 1601 to seconds since epoch (January 1, 1970)
@@ -26,9 +40,9 @@ class consumer_cdc:
         try:
             print("Initializing DB connection...") 
             conn =  pymssql.connect(
-                server="192.168.98.71:1764", 
-                user="srvc-ky9999003-debezium", 
-                password="vAWOq2L!^Bro"
+                server=f"{mssql_hostname}{mssql_port}", 
+                user=f"{mssql_user}", 
+                password=f"{mssql_password}"
                 )
             self.cursor = conn.cursor()
             print("DB connection established!")
@@ -65,6 +79,7 @@ class consumer_cdc:
         
         # Commit the transaction to the database
         self.conn.commit()
+        self.cursor.close()
 
 
     def consume_from_debezium(self):
