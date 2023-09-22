@@ -1,0 +1,84 @@
+version: '3'
+services:
+  kafka:
+    image: docker.io/bitnami/kafka:3.4
+    ports:
+      - "9092:9092"
+    volumes:
+      - "kafka_data:/bitnami"
+    environment:
+      # KRaft settings
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      # Listeners
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+
+  debezium-source:
+    image: debezium/connect:2.2.1.Final
+    depends_on:
+      - kafka
+      - pgAMI
+      - MyAMI
+      - oracleAMI
+    ports:
+      - 8083:8083
+    environment:
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: debezium_config
+      OFFSET_STORAGE_TOPIC: debezium_offset
+      STATUS_STORAGE_TOPIC: debezium_status
+      BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_ADVERTISED_HOST_NAME: debezium-source
+
+  pgAMI:
+    image: postgres:11
+    restart: always
+    command: [ 'postgres', '-c', 'wal_level=logical' ]
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: pgAMI
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./init_pgAMI.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+
+  MyAMI:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: MyAMI
+    volumes:
+      - ./init_MyAMI.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+
+
+  oracleAMI:
+    image: oracleinanutshell/oracle-xe-11g
+    environment:
+      ORACLE_ALLOW_REMOTE: 'true'
+      ORACLE_AUTO_GENERATE_SSH_KEYS: 'true'
+    volumes:
+      - ./init_oracleAMI.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "1521:1521"
+
+  ubuntu_dev:
+    build: .  # Build an image using the Dockerfile in the current directory
+    volumes:
+      - .:/app  # Mount the current directory
+    working_dir: /app
+    tty: true
+    depends_on:
+      - debezium-source
+
+volumes:
+  kafka_data:
+    driver: local
