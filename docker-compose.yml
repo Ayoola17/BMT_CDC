@@ -77,7 +77,11 @@ services:
     working_dir: /app
     tty: true
     depends_on:
+      - kafka
       - debezium-source
+      - pgAMI
+      - MyAMI
+      - oracleAMI
 
 volumes:
   kafka_data:
