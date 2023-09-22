@@ -20,7 +20,9 @@ class consumer_to_api:
             'before': message.get('before', {}),
             'after': message.get('after', {}),
             'source.db': message.get('source', {}).get('db', ''),
-            'source.table': message.get('source', {}).get('table', '')
+            'source.table': message.get('source', {}).get('table', ''),
+            'op': message.get('op', ''),
+            'ts_ms': message.get('ts_ms', None)
         }
         return extracted
 

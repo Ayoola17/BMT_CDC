@@ -53,22 +53,22 @@ class consumer_cdc:
             
 
     def handle_db_operation(self, op, source, rowid, customerid, locationid, reading, readingddt, meter, readingtype):
-        readingddt_converted = convert_to_datetime(readingddt)
-
+        
+        
         if op == "c":  # Create/Insert
             query = """
                 INSERT INTO MeterMaster.[dbo].[READINGS] (SOURCE, ROWID, CUSTOMERID, LOCATIONID, READING, READINGDT, METER, READINGTYPE, STREAMDT)
-                VALUES (%s, %s, %s, %s, CONVERT(decimal(7, 2), %s), %s, %s, %s, GETDATE())
+                VALUES (%s, %s, %s, %s, CONVERT(decimal(7, 2), %s), CONVERT(DATETIME, %s, 120), %s, %s, GETDATE())
             """
-            self.cursor.execute(query, (source, rowid, customerid, locationid, reading, readingddt_converted, meter, readingtype))
+            self.cursor.execute(query, (source, rowid, customerid, locationid, reading, readingddt, meter, readingtype))
         
         elif op == "u":  # Update
             query = """
                 UPDATE MeterMaster.[dbo].[READINGS]
-                SET READING = CONVERT(decimal(7, 2), %s), READINGDT = %s, METER = %s, READINGTYPE = %s, STREAMDT = GETDATE()
+                SET READING = CONVERT(decimal(7, 2), %s), READINGDT = CONVERT(DATETIME, %s, 120), METER = %s, READINGTYPE = %s, STREAMDT = GETDATE()
                 WHERE SOURCE = %s AND ROWID = %s
             """
-            self.cursor.execute(query, (reading, readingddt_converted, meter, readingtype, source, rowid))
+            self.cursor.execute(query, (reading, readingddt, meter, readingtype, source, rowid))
 
         elif op == "d":  # Delete
             query = """

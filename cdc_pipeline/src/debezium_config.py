@@ -35,7 +35,8 @@ def configure_debezium():
             "value.converter.schemas.enable":"false",
             "key.converter":"org.apache.kafka.connect.json.JsonConverter",
             "value.converter":"org.apache.kafka.connect.json.JsonConverter",
-            "decimal.handling.mode": "string"
+            "decimal.handling.mode": "string",
+            "datetime.handling.mode": "string"
 
         }
     }
