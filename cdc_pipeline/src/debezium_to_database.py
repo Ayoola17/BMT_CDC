@@ -21,11 +21,12 @@ mssql_password = os.getenv('MSSQL_PASSWORD')
 mssql_connector = "mssql_config"
 
 def convert_to_datetime(reading_dt):
-    # Convert from 100-nanosecond intervals since January 1, 1601 to seconds since epoch (January 1, 1970)
-    epoch_as_filetime = 116444736000000000
-    microseconds = (reading_dt - epoch_as_filetime) // 10
-    timestamp = datetime(1970, 1, 1) + timedelta(microseconds=microseconds)
-    return timestamp.strftime('%Y-%m-%d %H:%M:%S')
+    # Convert nanoseconds to seconds
+    seconds = reading_dt / 1e9
+
+    # Convert to datetime
+    dt = datetime.utcfromtimestamp(seconds)
+    return dt
 
 
 class consumer_cdc:
@@ -33,18 +34,17 @@ class consumer_cdc:
         self.bootstrap_servers = bootstrap_servers
         self.source_and_topics = source_and_topics
         self.topics = list(self.source_and_topics.keys())
-        self.conn = self.init_db_connection()
+        
 
     def init_db_connection(self):
 
         try:
             print("Initializing DB connection...") 
             conn =  pymssql.connect(
-                server=f"{mssql_hostname}{mssql_port}", 
+                server=f"{mssql_hostname}:{mssql_port}", 
                 user=f"{mssql_user}", 
                 password=f"{mssql_password}"
                 )
-            self.cursor = conn.cursor()
             print("DB connection established!")
             return conn
         except Exception as e:
@@ -53,22 +53,30 @@ class consumer_cdc:
             
 
     def handle_db_operation(self, op, source, rowid, customerid, locationid, reading, readingddt, meter, readingtype):
+
+        # intiate cursor AND CONN
+        self.conn = self.init_db_connection()
+        self.cursor = self.conn.cursor()
+
+        #convert datetime
+        converted_readingdt = convert_to_datetime(readingddt)
         
         
         if op == "c":  # Create/Insert
             query = """
                 INSERT INTO MeterMaster.[dbo].[READINGS] (SOURCE, ROWID, CUSTOMERID, LOCATIONID, READING, READINGDT, METER, READINGTYPE, STREAMDT)
-                VALUES (%s, %s, %s, %s, CONVERT(decimal(7, 2), %s), CONVERT(DATETIME, %s, 120), %s, %s, GETDATE())
+                VALUES (%s, %s, %s, %s, CONVERT(decimal(7, 2), %s), %s, %s, %s, GETDATE())
             """
-            self.cursor.execute(query, (source, rowid, customerid, locationid, reading, readingddt, meter, readingtype))
+            self.cursor.execute(query, (source, rowid, customerid, locationid, reading, converted_readingdt, meter, readingtype))
+
         
         elif op == "u":  # Update
             query = """
                 UPDATE MeterMaster.[dbo].[READINGS]
-                SET READING = CONVERT(decimal(7, 2), %s), READINGDT = CONVERT(DATETIME, %s, 120), METER = %s, READINGTYPE = %s, STREAMDT = GETDATE()
+                SET READING = CONVERT(decimal(7, 2), %s), READINGDT = %s, METER = %s, READINGTYPE = %s, STREAMDT = GETDATE()
                 WHERE SOURCE = %s AND ROWID = %s
             """
-            self.cursor.execute(query, (reading, readingddt, meter, readingtype, source, rowid))
+            self.cursor.execute(query, (reading, converted_readingdt, meter, readingtype, source, rowid))
 
         elif op == "d":  # Delete
             query = """
@@ -80,6 +88,7 @@ class consumer_cdc:
         # Commit the transaction to the database
         self.conn.commit()
         self.cursor.close()
+        self.conn.close()
 
 
     def consume_from_debezium(self):
@@ -94,7 +103,7 @@ class consumer_cdc:
 
         for msg in consumer:
             message = json.loads(msg.value)
-            print('writing to sink')
+            print('writing to metermaster table..')
 
             self.handle_db_operation(
                 op=message["op"],
