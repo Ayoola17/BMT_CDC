@@ -157,6 +157,34 @@ class consumer_cdc:
                         readingtype=message["after"]["READING_TYPE"] if message["after"] else None
                     )
 
+            elif source == 'B':
+                # use mysql schema
+                if message["op"] == "d":
+                    self.handle_db_operation(
+                        op=message["op"],
+                        source=source,
+                        rowid=message["before"]["READID"] if message["before"] else None,
+                        customerid=message["before"]["CUSTID"] if message["before"] else None,
+                        locationid=message["before"]["LOCID"] if message["before"] else None,
+                        reading=message["before"]["CNSUM"] if message["before"] else None,
+                        readingddt=message["before"]["CNSDT"] if message["before"] else None,
+                        meter=message["before"]["METID"] if message["before"] else None,
+                        readingtype=message["before"]["CNTYP"] if message["before"] else None
+                    )
+                else:
+                    self.handle_db_operation(
+                        op=message["op"],
+                        source=source,
+                        rowid=message["after"]["READID"] if message["after"] else None,
+                        customerid=message["after"]["CUSTID"] if message["after"] else None,
+                        locationid=message["after"]["LOCID"] if message["after"] else None,
+                        reading=message["after"]["CNSUM"] if message["after"] else None,
+                        readingddt=message["after"]["CNSDT"] if message["after"] else None,
+                        meter=message["after"]["METID"] if message["after"] else None,
+                        readingtype=message["after"]["CNTYP"] if message["after"] else None
+                    )
+            
+
             elif source == 'C':
                 #use postgres schema
                 if message["op"] == "d":
@@ -190,7 +218,7 @@ class consumer_cdc:
 bootstrap_server = "kafka:9092"
 source_and_topics = {
     "meter.AMI_MSSQL.dbo.CUSTOMER_READS": "A",
-    "mysql.MyAMIdb.READINGS" :"B"
+    "mysql.MyAMIdb.READINGS" :"B",
     "postgres1.public.mreads": "C"
     }
 

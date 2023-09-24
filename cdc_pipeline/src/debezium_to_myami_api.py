@@ -24,13 +24,14 @@ class consumer_to_api:
             'op': message.get('op', ''),
             'ts_ms': message.get('ts_ms', None)
         }
+        print(f'extracted {extracted}')
         return extracted
 
     def push_to_api(self, message):
         extracted_message = self.extract_message(message)
         for backoff in self.backoff_times:
             try:
-                response = requests.post(self.api_endpoint, json=extracted_message, timeout=30)
+                response = requests.post(self.api_endpoint, json=message, timeout=30)
                 response.raise_for_status()
                 return True, print('writing to myami api')
             except requests.HTTPError as err:
