@@ -26,31 +26,6 @@ def configure_debezium():
     # Define the Debezium source connector configuration fo mssql
     connector_config = [
         {
-        "name": f"{mssql_connector}",
-        "config": {
-            "connector.class": "io.debezium.connector.sqlserver.SqlServerConnector",
-            "database.hostname": f"{mssql_hostname}",
-            "database.port": f"{mssql_port}",
-            "database.user": f"{mssql_user}",
-            "database.password": f"{mssql_password}",
-            "database.names": "AMI_MSSQL",
-            "topic.prefix": "meter",
-            "table.include.list": "dbo.CUSTOMER_READS",
-            "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
-            "schema.history.internal.kafka.topic": "mssql_database_cdc",
-            "database.encrypt": "false",
-            "slot.name":"test1",
-            "key.converter.schemas.enable":"false",
-            "value.converter.schemas.enable":"false",
-            "key.converter":"org.apache.kafka.connect.json.JsonConverter",
-            "value.converter":"org.apache.kafka.connect.json.JsonConverter",
-            "decimal.handling.mode": "string",
-            "datetime.handling.mode": "string",
-            "tombstones.on.delete": "false",
-            "group.id": "debezium-mssql-group"
-        }               
-    },
-    {
          "name" : postgres_connector,
         "config" : {
             "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
@@ -60,7 +35,7 @@ def configure_debezium():
             "database.password": postgres_password,
             "database.dbname" : "pgAMIdb",
             "database.server.name" : "pgAMIdb",
-            "slot.name":"test5",
+            "slot.name":"test4",
             "plugin.name" :"pgoutput",
             "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
             "schema.history.internal.kafka.topic": "postgres_database_cdc",
@@ -69,9 +44,10 @@ def configure_debezium():
             "key.converter":"org.apache.kafka.connect.json.JsonConverter",
             "value.converter":"org.apache.kafka.connect.json.JsonConverter",
             "table.include.list":"public.MREADS",
-            "topic.prefix": "postgres",
+            "topic.prefix": "postgres1",
             "decimal.handling.mode": "string",
             "datetime.handling.mode": "string",
+            "tombstones.on.delete": "false",
             "group.id": "debezium-postgres-group"
             }
         }
