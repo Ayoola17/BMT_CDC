@@ -67,8 +67,8 @@ def configure_debezium():
             "database.user": postgres_user,
             "database.password": postgres_password,
             "database.dbname" : "pgAMIdb",
-            "database.server.name" : "pgAMIdb",
-            "slot.name":"test4",
+            "database.server.name" : "pgAMI",
+            "slot.name":"test_slot_1",
             "plugin.name" :"pgoutput",
             "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
             "schema.history.internal.kafka.topic": "postgres_database_cdc",
@@ -77,7 +77,7 @@ def configure_debezium():
             "key.converter":"org.apache.kafka.connect.json.JsonConverter",
             "value.converter":"org.apache.kafka.connect.json.JsonConverter",
             "table.include.list":"public.MREADS",
-            "topic.prefix": "postgres1",
+            "topic.prefix": "postgres3",
             "decimal.handling.mode": "string",
             "datetime.handling.mode": "string",
             "tombstones.on.delete": "false",
@@ -105,6 +105,9 @@ def configure_debezium():
                 "group.id": "debezium-mysql-group",
                 "key.converter.schemas.enable": "false",
                 "value.converter.schemas.enable": "false",
+                "time.precision.mode": "connect",
+                "datetime.precision.mode": "adaptive_time_microseconds"
+
             }
         }
 

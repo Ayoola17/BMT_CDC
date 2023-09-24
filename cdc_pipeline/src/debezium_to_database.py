@@ -20,12 +20,19 @@ mssql_password = os.getenv('MSSQL_PASSWORD')
 
 mssql_connector = "mssql_config"
 
-def convert_to_datetime(reading_dt):
+def convert_to_datetime(reading_dt, source):
     # Convert nanoseconds to seconds
-    seconds = reading_dt / 1e9
+    if source == 'A':
+        seconds = reading_dt / 1e9
+        
+        # Convert to datetime
+        dt = datetime.utcfromtimestamp(seconds)
+    
+    else:
+        timestamp_seconds = reading_dt / 1000  # Convert to seconds
 
-    # Convert to datetime
-    dt = datetime.utcfromtimestamp(seconds)
+        dt = datetime.utcfromtimestamp(timestamp_seconds)
+    
     return dt
 
 
@@ -71,7 +78,7 @@ class consumer_cdc:
         cursor = self.conn.cursor()
 
         #convert datetime
-        converted_readingdt = convert_to_datetime(readingddt)
+        converted_readingdt = convert_to_datetime(readingddt, source)
         
         
         if op == "c" or op == "r":  # Create/Insert or Read/Snapshot
@@ -219,7 +226,7 @@ bootstrap_server = "kafka:9092"
 source_and_topics = {
     "meter.AMI_MSSQL.dbo.CUSTOMER_READS": "A",
     "mysql.MyAMIdb.READINGS" :"B",
-    "postgres1.public.mreads": "C"
+    "postgres4.public.mreads": "C"
     }
 
 consumer = consumer_cdc(bootstrap_server, source_and_topics)
