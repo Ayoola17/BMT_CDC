@@ -23,6 +23,9 @@ def run_api_ami_sink():
 def run_api_postgres_sink():
     import cdc_pipeline.src.debezium_to_pgami_api
 
+def run_api_mysql_sink():
+    import cdc_pipeline.src.debezium_to_myami_api
+
 if __name__ == "__main__":
     connections = [mssql_connector, postgres_connector, mysql_connector]
 
@@ -48,6 +51,10 @@ if __name__ == "__main__":
     api_postgres_thread = threading.Thread(target=run_api_postgres_sink)
     api_postgres_thread.start()
 
+    #start api to mysql sink
+    api_mysql_thread = threading.Thread(target=run_api_mysql_sink)
+    api_mysql_thread.start()
+
 
     print('thread started')
 
@@ -57,5 +64,6 @@ if __name__ == "__main__":
             db_thread.join(60)  # check every minute if the db_thread is still alive
             api_ami_thread.join(60)  # check every minute if the api_thread is still alive
             api_postgres_thread.join(60)
+            api_mysql_thread.join(60)
     except KeyboardInterrupt:
         print("Received keyboard interrupt. Stopping threads...")
