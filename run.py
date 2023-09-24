@@ -1,6 +1,6 @@
 import requests
 import threading
-from cdc_pipeline.src.debezium_config import configure_debezium, mssql_connector
+from cdc_pipeline.src.debezium_config import configure_debezium, mssql_connector, postgres_connector
 
 def check_connector_existence(connector_name):
     """
@@ -17,18 +17,23 @@ def check_connector_existence(connector_name):
 def run_database_sink():
     import cdc_pipeline.src.debezium_to_database
 
-def run_api_sink():
-    import cdc_pipeline.src.debezium_to_api
+def run_api_ami_sink():
+    import cdc_pipeline.src.debezium_to_ami_api
+
+def run_api_postgres_sink():
+    import cdc_pipeline.src.debezium_to_pgami_api
 
 if __name__ == "__main__":
-    connector_name = mssql_connector
+    connections = [mssql_connector, postgres_connector]
 
-    # If the connector isn't already set up, configure it
-    if not check_connector_existence(connector_name):
-        print(f"Connector '{connector_name}' not found. Setting it up using Debezium.")
-        configure_debezium()
-    else:
-        print(f"Connector '{connector_name}' already exists.")
+    for connector_name in connections:
+
+        # If the connector isn't already set up, configure it
+        if not check_connector_existence(connector_name):
+            print(f"Connector '{connector_name}' not found. Setting it up using Debezium.")
+            configure_debezium()
+        else:
+            print(f"Connector '{connector_name}' already exists.")
 
     print('Starting database and API sink threads...')
     # Start the database sink in its own thread
@@ -36,14 +41,21 @@ if __name__ == "__main__":
     db_thread.start()
     
     # Start the API sink in its own thread
-    api_thread = threading.Thread(target=run_api_sink)
-    api_thread.start()
+    api_ami_thread = threading.Thread(target=run_api_ami_sink)
+    api_ami_thread.start()
+
+    # Start api to pgami sink
+    api_postgres_thread = threading.Thread(target=run_api_postgres_sink)
+    api_postgres_thread.start()
+
+
     print('thread started')
 
     try:
         # Keep the main thread running
         while True:
             db_thread.join(60)  # check every minute if the db_thread is still alive
-            api_thread.join(60)  # check every minute if the api_thread is still alive
+            api_ami_thread.join(60)  # check every minute if the api_thread is still alive
+            api_postgres_thread.join(60)
     except KeyboardInterrupt:
         print("Received keyboard interrupt. Stopping threads...")

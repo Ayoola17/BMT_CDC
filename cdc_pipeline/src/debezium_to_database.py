@@ -62,12 +62,20 @@ class consumer_cdc:
         converted_readingdt = convert_to_datetime(readingddt)
         
         
-        if op == "c":  # Create/Insert
+        if op == "c" or op == "r":  # Create/Insert or Read/Snapshot
             query = """
                 INSERT INTO MeterMaster.[dbo].[READINGS] (SOURCE, ROWID, CUSTOMERID, LOCATIONID, READING, READINGDT, METER, READINGTYPE, STREAMDT)
                 VALUES (%s, %s, %s, %s, CONVERT(decimal(7, 2), %s), %s, %s, %s, GETDATE())
             """
-            self.cursor.execute(query, (source, rowid, customerid, locationid, reading, converted_readingdt, meter, readingtype))
+            try:
+                self.cursor.execute(query, (source, rowid, customerid, locationid, reading, converted_readingdt, meter, readingtype))
+            except pymssql._pymssql.IntegrityError as e:
+                if 'Violation of PRIMARY KEY constraint' in str(e):
+                    # Log or handle the duplicate key error
+                    print(f"Duplicate key error for {rowid}. Skipping...")
+                else:
+                    # Raise the error if it's not a duplicate key error
+                    raise
 
         
         elif op == "u":  # Update
@@ -98,26 +106,75 @@ class consumer_cdc:
             *self.topics,
             bootstrap_servers=self.bootstrap_servers,
             auto_offset_reset='latest',
-            value_deserializer=lambda x: x.decode('utf-8')
+            value_deserializer=lambda x: x.decode('utf-8') if x else None
         )
 
         for msg in consumer:
+            source = self.source_and_topics[msg.topic]
             message = json.loads(msg.value)
+            print(message)
             print('writing to metermaster table..')
 
-            self.handle_db_operation(
-                op=message["op"],
-                source=self.source_and_topics[msg.topic],
-                rowid=message["after"]["READINGID"] if message["after"] else None,
-                customerid=message["after"]["CUSTOMERID"] if message["after"] else None,
-                locationid=message["after"]["LOCATIONID"] if message["after"] else None,
-                reading=message["after"]["READING"] if message["after"] else None,
-                readingddt=message["after"]["READING_DT"] if message["after"] else None,
-                meter=message["after"]["METERID"] if message["after"] else None,
-                readingtype=message["after"]["READING_TYPE"] if message["after"] else None
-            )
+            # Check streaming source
+            if source == 'A':
+                # use mssql schema
+                if message["op"] == "d":
+                    self.handle_db_operation(
+                        op=message["op"],
+                        source=source,
+                        rowid=message["before"]["READINGID"] if message["before"] else None,
+                        customerid=message["before"]["CUSTOMERID"] if message["before"] else None,
+                        locationid=message["before"]["LOCATIONID"] if message["before"] else None,
+                        reading=message["before"]["READING"] if message["before"] else None,
+                        readingddt=message["before"]["READING_DT"] if message["before"] else None,
+                        meter=message["before"]["METERID"] if message["before"] else None,
+                        readingtype=message["before"]["READING_TYPE"] if message["before"] else None
+                    )
+                else:
+                    self.handle_db_operation(
+                        op=message["op"],
+                        source=source,
+                        rowid=message["after"]["READINGID"] if message["after"] else None,
+                        customerid=message["after"]["CUSTOMERID"] if message["after"] else None,
+                        locationid=message["after"]["LOCATIONID"] if message["after"] else None,
+                        reading=message["after"]["READING"] if message["after"] else None,
+                        readingddt=message["after"]["READING_DT"] if message["after"] else None,
+                        meter=message["after"]["METERID"] if message["after"] else None,
+                        readingtype=message["after"]["READING_TYPE"] if message["after"] else None
+                    )
 
+            elif source == 'C':
+                #use postgres schema
+                if message["op"] == "d":
+                    self.handle_db_operation(
+                        op=message["op"],
+                        source=source,
+                        rowid=message["before"]["rid"] if message["before"] else None,
+                        customerid=message["before"]["cust"] if message["before"] else None,
+                        locationid=message["before"]["loc"] if message["before"] else None,
+                        reading=message["before"]["cosum"] if message["before"] else None,
+                        readingddt=message["before"]["cosdt"] if message["before"] else None,
+                        meter=message["before"]["meter"] if message["before"] else None,
+                        readingtype=message["before"]["costy"] if message["before"] else None
+                    )
+                else:
+                    self.handle_db_operation(
+                        op=message["op"],
+                        source=source,
+                        rowid=message["after"]["rid"] if message["after"] else None,
+                        customerid=message["after"]["cust"] if message["after"] else None,
+                        locationid=message["after"]["loc"] if message["after"] else None,
+                        reading=message["after"]["cosum"] if message["after"] else None,
+                        readingddt=message["after"]["cosdt"] if message["after"] else None,
+                        meter=message["after"]["meter"] if message["after"] else None,
+                        readingtype=message["after"]["costy"] if message["after"] else None
+                    )
 
+bootstrap_server = "kafka:9092"
+source_and_topics = {
+    "meter.AMI_MSSQL.dbo.CUSTOMER_READS": "A",
+    "postgres.public.mreads": "C"
+    }
 
-consumer = consumer_cdc("kafka:9092", {"meter.AMI_MSSQL.dbo.CUSTOMER_READS": "A"})
+consumer = consumer_cdc(bootstrap_server, source_and_topics)
 consumer.consume_from_debezium()
