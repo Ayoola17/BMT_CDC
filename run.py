@@ -1,6 +1,6 @@
 import requests
 import threading
-from cdc_pipeline.src.debezium_config import configure_debezium, mssql_connector, postgres_connector
+from cdc_pipeline.src.debezium_config import configure_debezium, mssql_connector, postgres_connector, mysql_connector
 
 def check_connector_existence(connector_name):
     """
@@ -24,7 +24,7 @@ def run_api_postgres_sink():
     import cdc_pipeline.src.debezium_to_pgami_api
 
 if __name__ == "__main__":
-    connections = [mssql_connector, postgres_connector]
+    connections = [mssql_connector, postgres_connector, mysql_connector]
 
     for connector_name in connections:
 
