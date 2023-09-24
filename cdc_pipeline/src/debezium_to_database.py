@@ -29,34 +29,46 @@ def convert_to_datetime(reading_dt):
     return dt
 
 
+
 class consumer_cdc:
-    def __init__(self, bootstrap_servers:str, source_and_topics:dict):
+    def __init__(self, bootstrap_servers:str, source_and_topics:dict, refresh_interval=100):
         self.bootstrap_servers = bootstrap_servers
         self.source_and_topics = source_and_topics
         self.topics = list(self.source_and_topics.keys())
+        self.refresh_interval = refresh_interval
+        self.msg_count = 0
+        self.conn = None
+        self.init_db_connection()
         
 
-    def init_db_connection(self):
+    def init_db_connection(self, auto_commit=True):
+        if self.conn:
+            self.conn.close()
 
         try:
             print("Initializing DB connection...") 
-            conn =  pymssql.connect(
+            self.conn =  pymssql.connect(
                 server=f"{mssql_hostname}:{mssql_port}", 
                 user=f"{mssql_user}", 
                 password=f"{mssql_password}"
                 )
+            self.conn.autocommit(auto_commit)
             print("DB connection established!")
-            return conn
+            
         except Exception as e:
             print("Error establishing DB connection:", e)
-            return None
-            
+
+    
+    def maybe_refresh_connection(self):
+        self.msg_count += 1
+        if self.msg_count % self.refresh_interval == 0:
+            print("Refreshing DB connection...")
+            self.init_db_connection()
 
     def handle_db_operation(self, op, source, rowid, customerid, locationid, reading, readingddt, meter, readingtype):
 
         # intiate cursor AND CONN
-        self.conn = self.init_db_connection()
-        self.cursor = self.conn.cursor()
+        cursor = self.conn.cursor()
 
         #convert datetime
         converted_readingdt = convert_to_datetime(readingddt)
@@ -68,7 +80,7 @@ class consumer_cdc:
                 VALUES (%s, %s, %s, %s, CONVERT(decimal(7, 2), %s), %s, %s, %s, GETDATE())
             """
             try:
-                self.cursor.execute(query, (source, rowid, customerid, locationid, reading, converted_readingdt, meter, readingtype))
+                cursor.execute(query, (source, rowid, customerid, locationid, reading, converted_readingdt, meter, readingtype))
             except pymssql._pymssql.IntegrityError as e:
                 if 'Violation of PRIMARY KEY constraint' in str(e):
                     # Log or handle the duplicate key error
@@ -84,23 +96,24 @@ class consumer_cdc:
                 SET READING = CONVERT(decimal(7, 2), %s), READINGDT = %s, METER = %s, READINGTYPE = %s, STREAMDT = GETDATE()
                 WHERE SOURCE = %s AND ROWID = %s
             """
-            self.cursor.execute(query, (reading, converted_readingdt, meter, readingtype, source, rowid))
+            cursor.execute(query, (reading, converted_readingdt, meter, readingtype, source, rowid))
 
         elif op == "d":  # Delete
             query = """
                 DELETE FROM MeterMaster.[dbo].[READINGS]
                 WHERE SOURCE = %s AND ROWID = %s
             """
-            self.cursor.execute(query, (source, rowid))
+            cursor.execute(query, (source, rowid))
         
         # Commit the transaction to the database
         self.conn.commit()
-        self.cursor.close()
-        self.conn.close()
+        cursor.close()
 
 
     def consume_from_debezium(self):
         print('Ready to consume message...')
+
+        self.init_db_connection()
        
         consumer = KafkaConsumer(
             *self.topics,
@@ -110,6 +123,7 @@ class consumer_cdc:
         )
 
         for msg in consumer:
+            self.maybe_refresh_connection()
             source = self.source_and_topics[msg.topic]
             message = json.loads(msg.value)
             print(message)
@@ -169,6 +183,9 @@ class consumer_cdc:
                         meter=message["after"]["meter"] if message["after"] else None,
                         readingtype=message["after"]["costy"] if message["after"] else None
                     )
+
+        if self.conn:
+            self.conn.close()
 
 bootstrap_server = "kafka:9092"
 source_and_topics = {
