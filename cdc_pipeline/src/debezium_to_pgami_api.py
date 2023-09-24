@@ -32,7 +32,7 @@ class consumer_to_api:
             try:
                 response = requests.post(self.api_endpoint, json=extracted_message, timeout=30)
                 response.raise_for_status()
-                return True
+                return True, print('writing to pgSql api')
             except requests.HTTPError as err:
                 print(f"Failed to push message to API due to an HTTP error: {err}. Retrying in {backoff} seconds...")
             except requests.RequestException as err:
@@ -41,7 +41,7 @@ class consumer_to_api:
         return False
 
     def consume_and_push(self):
-        print('Consumer to api up...')
+        print('Consumer to pgSQL api up...')
         for message in self.consumer:
             success = self.push_to_api(message.value)
             if not success:
@@ -49,8 +49,8 @@ class consumer_to_api:
 
 
 kafka_bootstrap_servers = 'kafka:9092'
-kafka_topic = 'meter.AMI_MSSQL.dbo.CUSTOMER_READS' 
-api_endpoint = 'https://meterapi.ylu.agency/api/AMISQL/KafkaSink'
+kafka_topic = 'poc.public.MREADS' 
+api_endpoint = 'https://meterapi.ylu.agency/api/PgAMI/KafkaSink'
 
 pusher = consumer_to_api(kafka_bootstrap_servers, kafka_topic, api_endpoint)
 pusher.consume_and_push()

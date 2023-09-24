@@ -3,3 +3,5 @@ requests==2.31.0
 kafka-python==2.0.2
 pymssql==2.2.8
 python-dotenv==1.0.0
+mysql_connector_python==8.1.0
+psycopg2-binary==2.9.7
