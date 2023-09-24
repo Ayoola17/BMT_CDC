@@ -28,6 +28,7 @@ class consumer_to_api:
 
     def push_to_api(self, message):
         extracted_message = self.extract_message(message)
+        print(f'extracted {extracted_message}')
         for backoff in self.backoff_times:
             try:
                 response = requests.post(self.api_endpoint, json=extracted_message, timeout=30)

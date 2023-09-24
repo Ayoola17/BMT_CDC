@@ -24,14 +24,17 @@ class consumer_to_api:
             'op': message.get('op', ''),
             'ts_ms': message.get('ts_ms', None)
         }
-        print(f'extracted {extracted}')
         return extracted
 
     def push_to_api(self, message):
+        headers = {
+        "Content-Type": "application/json"
+         }
         extracted_message = self.extract_message(message)
+        print(f'extracted {extracted_message}')
         for backoff in self.backoff_times:
             try:
-                response = requests.post(self.api_endpoint, json=message, timeout=30)
+                response = requests.post(self.api_endpoint, json=extracted_message, headers=headers, timeout=30)
                 response.raise_for_status()
                 return True, print('writing to myami api')
             except requests.HTTPError as err:
@@ -42,7 +45,7 @@ class consumer_to_api:
         return False
 
     def consume_and_push(self):
-        print('Consumer to MYAMI api up...')
+        print('Consumer to mySQL api up...')
         for message in self.consumer:
             success = self.push_to_api(message.value)
             if not success:
