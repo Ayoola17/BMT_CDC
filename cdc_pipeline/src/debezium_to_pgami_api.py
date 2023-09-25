@@ -49,7 +49,7 @@ class consumer_to_api:
 
 
 kafka_bootstrap_servers = 'kafka:9092'
-kafka_topic = 'poc.public.MREADS' 
+kafka_topic = 'postgres5.public.mreads' 
 api_endpoint = 'https://meterapi.ylu.agency/api/PgAMI/KafkaSink'
 
 pusher = consumer_to_api(kafka_bootstrap_servers, kafka_topic, api_endpoint)

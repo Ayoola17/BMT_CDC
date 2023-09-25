@@ -27,6 +27,12 @@ def convert_to_datetime(reading_dt, source):
         
         # Convert to datetime
         dt = datetime.utcfromtimestamp(seconds)
+
+    elif  source == 'C':
+        seconds = reading_dt / 1000000
+        
+        # Convert to datetime
+        dt = datetime.utcfromtimestamp(seconds)
     
     else:
         timestamp_seconds = reading_dt / 1000  # Convert to seconds
@@ -74,47 +80,55 @@ class consumer_cdc:
 
     def handle_db_operation(self, op, source, rowid, customerid, locationid, reading, readingddt, meter, readingtype):
 
-        # intiate cursor AND CONN
+        # initiate cursor AND CONN
         cursor = self.conn.cursor()
 
-        #convert datetime
-        converted_readingdt = convert_to_datetime(readingddt, source)
-        
-        
-        if op == "c" or op == "r":  # Create/Insert or Read/Snapshot
-            query = """
-                INSERT INTO MeterMaster.[dbo].[READINGS] (SOURCE, ROWID, CUSTOMERID, LOCATIONID, READING, READINGDT, METER, READINGTYPE, STREAMDT)
-                VALUES (%s, %s, %s, %s, CONVERT(decimal(7, 2), %s), %s, %s, %s, GETDATE())
-            """
-            try:
-                cursor.execute(query, (source, rowid, customerid, locationid, reading, converted_readingdt, meter, readingtype))
-            except pymssql._pymssql.IntegrityError as e:
-                if 'Violation of PRIMARY KEY constraint' in str(e):
-                    # Log or handle the duplicate key error
-                    print(f"Duplicate key error for {rowid}. Skipping...")
-                else:
-                    # Raise the error if it's not a duplicate key error
-                    raise
+        try:
+            if op == "c" or op == "r":  # Create/Insert or Read/Snapshot
+                # convert datetime
+                converted_readingdt = convert_to_datetime(readingddt, source)
 
-        
-        elif op == "u":  # Update
-            query = """
-                UPDATE MeterMaster.[dbo].[READINGS]
-                SET READING = CONVERT(decimal(7, 2), %s), READINGDT = %s, METER = %s, READINGTYPE = %s, STREAMDT = GETDATE()
-                WHERE SOURCE = %s AND ROWID = %s
-            """
-            cursor.execute(query, (reading, converted_readingdt, meter, readingtype, source, rowid))
+                query = """
+                    INSERT INTO MeterMaster.[dbo].[READINGS] (SOURCE, ROWID, CUSTOMERID, LOCATIONID, READING, READINGDT, METER, READINGTYPE, STREAMDT)
+                    VALUES (%s, %s, %s, %s, CONVERT(decimal(7, 2), %s), %s, %s, %s, GETDATE())
+                """
+                try:
+                    cursor.execute(query, (source, rowid, customerid, locationid, reading, converted_readingdt, meter, readingtype))
+                except pymssql._pymssql.IntegrityError as e:
+                    if 'Violation of PRIMARY KEY constraint' in str(e):
+                        # Log or handle the duplicate key error
+                        print(f"Duplicate key error for {rowid}. Skipping...")
+                    else:
+                        # Raise the error if it's not a duplicate key error
+                        raise
 
-        elif op == "d":  # Delete
-            query = """
-                DELETE FROM MeterMaster.[dbo].[READINGS]
-                WHERE SOURCE = %s AND ROWID = %s
-            """
-            cursor.execute(query, (source, rowid))
-        
-        # Commit the transaction to the database
-        self.conn.commit()
-        cursor.close()
+            elif op == "u":  # Update
+                # convert datetime
+                converted_readingdt = convert_to_datetime(readingddt, source)
+
+                query = """
+                    UPDATE MeterMaster.[dbo].[READINGS]
+                    SET READING = CONVERT(decimal(7, 2), %s), READINGDT = %s, METER = %s, READINGTYPE = %s, STREAMDT = GETDATE()
+                    WHERE SOURCE = %s AND ROWID = %s
+                """
+                cursor.execute(query, (reading, converted_readingdt, meter, readingtype, source, rowid))
+
+            elif op == "d":  # Delete
+                query = """
+                    DELETE FROM MeterMaster.[dbo].[READINGS]
+                    WHERE SOURCE = %s AND ROWID = %s
+                """
+                cursor.execute(query, (source, rowid))
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            # Optionally re-raise the exception if needed
+            # raise
+
+        finally:
+            # Commit the transaction to the database
+            self.conn.commit()
+            cursor.close()
 
 
     def consume_from_debezium(self):
@@ -226,7 +240,7 @@ bootstrap_server = "kafka:9092"
 source_and_topics = {
     "meter.AMI_MSSQL.dbo.CUSTOMER_READS": "A",
     "mysql.MyAMIdb.READINGS" :"B",
-    "postgres4.public.mreads": "C"
+    "postgres5.public.mreads": "C"
     }
 
 consumer = consumer_cdc(bootstrap_server, source_and_topics)
