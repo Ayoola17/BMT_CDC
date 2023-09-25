@@ -77,7 +77,7 @@ def configure_debezium():
             "key.converter":"org.apache.kafka.connect.json.JsonConverter",
             "value.converter":"org.apache.kafka.connect.json.JsonConverter",
             "table.include.list":"public.MREADS",
-            "topic.prefix": "postgres3",
+            "topic.prefix": "postgres5",
             "decimal.handling.mode": "string",
             "datetime.handling.mode": "string",
             "tombstones.on.delete": "false",
