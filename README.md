@@ -102,8 +102,11 @@ To delete all Docker images and clear memory associated with them, you can use t
    docker builder prune -a
    ```
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> ed14607 (Update README.md)
 If you want to delete the volumes of Docker containers, especially where databases were created on your local machine, you can use the following steps:
 
 1. **List all volumes**:
