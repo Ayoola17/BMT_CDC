@@ -1,4 +1,35 @@
 ## Introduction
+<<<<<<< HEAD
+=======
+
+Our solution leverages Debezium, an open-source CDC (Change Data Capture) tool, to efficiently stream data from various database sources, namely MSSQL, Oracle, MySQL, and PostgreSQL. This streamed data is channeled into a consolidated "Meter Master" table in an MSSQL server, as well as being dispatched to specific API endpoints for each database.
+
+Debezium, in essence, acts as a bridge capturing row-level changes in the databases and producing events to Kafka. Subsequent consumers then process these events, ensuring they are appropriately directed to their designated sinks, whether that be the Meter Master table or one of the individual API endpoints.
+
+The architecture can be visualized as follows:
+
+```
+ +------------+     +---------+     +----------+     +-----------------------+         +----------------------------+
+ |  Database  |---->|Debezium |---->|  Kafka   |---->| Kafka Consumer        |   --->  |  Meter master Table        |
+ +------------+     +---------+     +----------+     +-----------------------+         +----------------------------+
+                                                                  |
+                                                                  V
+                                                           +-------------+
+                                                           | API Endpoint|
+                                                           +-------------+
+```
+
+In this representation:
+- **Database**: Represents the origin databases (MSSQL, Oracle, MySQL, PostgreSQL) where changes are captured.
+- **Debezium**: Captures row-level changes and produces them as events.
+- **Kafka**: Receives these events and manages them for consumption.
+- **Kafka Consumer**: Consumes the events from Kafka and updates the "Meter Master" table in MSSQL.
+- **Meter master Table**: Unified database to capture changes from multiple source
+- **API Endpoint**: The various endpoints, each specific to a database, consuming and presenting the changes.
+
+Through this pipeline, real-time data syncing is achieved with minimized latency, ensuring up-to-date reflections across both the Meter Master table and the API endpoints.
+### Running the Pipeline with Docker
+>>>>>>> 12d63cc (Update README.md)
 
 Our solution leverages Debezium, an open-source CDC (Change Data Capture) tool, to efficiently stream data from various database sources, namely MSSQL, Oracle, MySQL, and PostgreSQL. This streamed data is channeled into a consolidated "Meter Master" table in an MSSQL server, as well as being dispatched to specific API endpoints for each database.
 
@@ -57,11 +88,14 @@ The pipeline can also be triggered manually by doing the following.
      ```
      python3 run.py
      ```
+<<<<<<< HEAD
 
 The pipeline is now in motion! It will dynamically track changes from the source databases and channel them to the Meter Master table and the distinct API endpoints.
  
  
  
+=======
+>>>>>>> 12d63cc (Update README.md)
 #### Development Notes
 
 The pipeline is now configured to automatically initiate upon executing the `docker-compose up` command. To enhance robustness and account for potential delays or lags, each pipeline module has been designed to consume from its individual topic. This approach ensures that if one database experiences latency or fails to consume a message immediately upon its production, it doesn't cause inconsistencies or incomplete data in the sink. This decoupling mechanism serves to optimize the reliability and consistency of the data flow across the system.
@@ -103,10 +137,15 @@ To delete all Docker images and clear memory associated with them, you can use t
    ```
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 
 =======
 >>>>>>> ed14607 (Update README.md)
+=======
+
+
+>>>>>>> 12d63cc (Update README.md)
 If you want to delete the volumes of Docker containers, especially where databases were created on your local machine, you can use the following steps:
 
 1. **List all volumes**:
