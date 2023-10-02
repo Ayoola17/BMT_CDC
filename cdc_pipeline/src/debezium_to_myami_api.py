@@ -53,7 +53,7 @@ class consumer_to_api:
 
 
 kafka_bootstrap_servers = 'kafka:9092'
-kafka_topic = 'mysql_api.MyAMIdb.READINGS' 
+kafka_topic = 'mysql.Myami_db.READINGS' 
 api_endpoint = 'https://meterapi.ylu.agency/api/MyAMI/KafkaSink'
 
 pusher = consumer_to_api(kafka_bootstrap_servers, kafka_topic, api_endpoint)
