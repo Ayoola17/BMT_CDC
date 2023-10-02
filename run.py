@@ -57,7 +57,7 @@ def stop_threads(threads):
 if __name__ == "__main__":
 
     print("Waiting for 5 minutes before starting...")
-    #time.sleep(300)
+    time.sleep(300)
 
     connections = [
         mssql_connector, 
