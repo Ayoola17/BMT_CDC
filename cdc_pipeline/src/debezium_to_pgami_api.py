@@ -35,6 +35,7 @@ class consumer_to_api:
                 return True, print('writing to pgSql api')
             except requests.HTTPError as err:
                 print(f"Failed to push message to API due to an HTTP error: {err}. Retrying in {backoff} seconds...")
+                print(response.json())
             except requests.RequestException as err:
                 print(f"Failed to push message to API due to a general request error: {err}. Retrying in {backoff} seconds...")
             time.sleep(backoff)
@@ -49,7 +50,7 @@ class consumer_to_api:
 
 
 kafka_bootstrap_servers = 'kafka:9092'
-kafka_topic = 'postgres5.public.mreads' 
+kafka_topic = 'postgres5_api.public.mreads' 
 api_endpoint = 'https://meterapi.ylu.agency/api/PgAMI/KafkaSink'
 
 pusher = consumer_to_api(kafka_bootstrap_servers, kafka_topic, api_endpoint)

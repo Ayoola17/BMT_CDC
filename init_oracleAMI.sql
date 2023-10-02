@@ -1,18 +1,8 @@
--- Connect as a privileged user
-CONNECT SYSTEM/oracle;
+CREATE USER TEST IDENTIFIED BY test QUOTA UNLIMITED ON USERS;
 
--- Drop the user if it already exists (this is optional and is just for the sake of idempotency)
-DROP USER oracleami CASCADE;
+GRANT CONNECT, RESOURCE TO TEST;
 
--- Create a new user and grant required privileges
-CREATE USER oracleami IDENTIFIED BY oracleamipassword;
-GRANT CONNECT, RESOURCE TO oracleami;
-GRANT CREATE SESSION TO oracleami;
-GRANT UNLIMITED TABLESPACE TO oracleami;
-
--- Now, let's switch to the new user and create the table
-CONNECT oracleami/oracleamipassword;
-
+-- Create the table under the new user's schema
 CREATE TABLE CUSREADS (
     rowno RAW(16) PRIMARY KEY,
     cust NUMBER(10,0),

@@ -28,7 +28,7 @@ class consumer_to_api:
 
     def push_to_api(self, message):
         extracted_message = self.extract_message(message)
-        print(f'extracted {extracted_message}')
+        #print(f'extracted {extracted_message}')
         for backoff in self.backoff_times:
             try:
                 response = requests.post(self.api_endpoint, json=extracted_message, timeout=30)
@@ -36,6 +36,7 @@ class consumer_to_api:
                 return True, print('writing to amiSQL api')
             except requests.HTTPError as err:
                 print(f"Failed to push message to API due to an HTTP error: {err}. Retrying in {backoff} seconds...")
+                print(response.json())
             except requests.RequestException as err:
                 print(f"Failed to push message to API due to a general request error: {err}. Retrying in {backoff} seconds...")
             time.sleep(backoff)
@@ -50,7 +51,7 @@ class consumer_to_api:
 
 
 kafka_bootstrap_servers = 'kafka:9092'
-kafka_topic = 'meter.AMI_MSSQL.dbo.CUSTOMER_READS' 
+kafka_topic = 'api.AMI_MSSQL.dbo.CUSTOMER_READS' 
 api_endpoint = 'https://meterapi.ylu.agency/api/AMISQL/KafkaSink'
 
 pusher = consumer_to_api(kafka_bootstrap_servers, kafka_topic, api_endpoint)

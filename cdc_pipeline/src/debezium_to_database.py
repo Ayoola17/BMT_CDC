@@ -147,8 +147,8 @@ class consumer_cdc:
             self.maybe_refresh_connection()
             source = self.source_and_topics[msg.topic]
             message = json.loads(msg.value)
-            print(message)
-            print('writing to metermaster table..')
+            #print(message)
+            #print('writing to metermaster table..')
 
             # Check streaming source
             if source == 'A':
