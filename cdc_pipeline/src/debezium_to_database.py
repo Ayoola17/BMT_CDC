@@ -239,7 +239,7 @@ class consumer_cdc:
 bootstrap_server = "kafka:9092"
 source_and_topics = {
     "meter.AMI_MSSQL.dbo.CUSTOMER_READS": "A",
-    "mysql.MyAMIdb.READINGS" :"B",
+    "mysql.Myami_db.READINGS" :"B",
     "postgres5.public.mreads": "C"
     }
 
