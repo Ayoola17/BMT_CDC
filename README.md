@@ -150,3 +150,4 @@ If you want to delete the volumes of Docker containers, especially where databas
 Please be cautious when deleting volumes, especially if they contain databases. Once a volume is removed, the data within it is lost and cannot be recovered unless you have backups. Always ensure you have a backup of your data before performing any deletions.
 
 **NOTE**: Before running these commands, it's important to note that they will stop all your containers, remove all of them, and delete all your images.
+dir

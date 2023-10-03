@@ -189,7 +189,7 @@ class consumer_cdc:
         if self.conn:
             self.conn.close()
 
-bootstrap_server = "kafka:9094"
+bootstrap_server = "kafka:9092"
 source_and_topics = {
     "oracle1.DEBEZIUM.CUSREADS": "D"
     }

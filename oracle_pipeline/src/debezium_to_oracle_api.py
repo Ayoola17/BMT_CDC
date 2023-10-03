@@ -49,7 +49,7 @@ class consumer_to_api:
                 print(f"Failed to push message {message.value} after all retries")
 
 
-kafka_bootstrap_servers = 'kafka:9094'
+kafka_bootstrap_servers = 'kafka:9092'
 kafka_topic = 'oracle1.DEBEZIUM.CUSREADS' 
 api_endpoint = 'https://meterapi.ylu.agency/api/OracleAMI/KafkaSink'
 
