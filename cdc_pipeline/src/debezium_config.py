@@ -149,7 +149,7 @@ def configure_debezium():
             "database.password": postgres_password,
             "database.dbname" : "Pgami_db",
             "database.server.name" : "pgAMI",
-            "slot.name":"api_slot_1",
+            "slot.name":"test_slot_1",
             "plugin.name" :"pgoutput",
             "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
             "schema.history.internal.kafka.topic": "postgres_database_cdc",
@@ -164,10 +164,7 @@ def configure_debezium():
             "tombstones.on.delete": "false",
             "group.id": "debezium-postgres-group"
             }
-        }
-        
-        ]
-    """
+        },
         {
             "name": mysql_connector_api,
             "config": {
@@ -176,7 +173,7 @@ def configure_debezium():
                 "database.port": mysql_port,
                 "database.user": "root",
                 "database.password": "rootpassword",
-                "database.server.id": "2",
+                "database.server.id": "1",
                 "topic.prefix": "mysql_api",
                 "database.include.list": "Myami_db",
                 "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
@@ -194,8 +191,8 @@ def configure_debezium():
 
             }
         }
-    """
-    
+
+    ]
     for config in connector_config:
         try:
             response = requests.post("http://debezium-source:8083/connectors", json=config, headers={"Content-Type": "application/json"})

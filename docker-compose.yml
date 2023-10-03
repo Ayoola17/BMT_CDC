@@ -24,6 +24,7 @@ services:
       - kafka
       - pgAMI
       - MyAMI
+      - oracleAMI
     ports:
       - 8083:8083
     environment:
@@ -33,9 +34,6 @@ services:
       STATUS_STORAGE_TOPIC: debezium_status
       BOOTSTRAP_SERVERS: kafka:9092
       CONNECT_REST_ADVERTISED_HOST_NAME: debezium-source
-
-    volumes:
-      - ./ojdbc8.jar:/kafka/libs/ojdbc8.jar
 
   pgAMI:
     image: postgres:11
@@ -70,13 +68,16 @@ services:
       - "3306:3306"
 
 
-  oracleami:
-    image: ayoola17/oracleami_cdc:v1
-    ports:
-      - "1521:1521"  
+  oracleAMI:
+    image: gvenzl/oracle-free
+    environment:
+      ORACLE_ALLOW_REMOTE: 'true'
+      ORACLE_AUTO_GENERATE_SSH_KEYS: 'true'
     volumes:
-      - oracle-data:/opt/oracle/oradata  
-
+      - ./init_oracleAMI.sql:/docker-entrypoint-initdb.d/init.sql
+      - oracle-data:/opt/oracle/oradata
+    ports:
+      - "1521:1521"
 
 
   python_app:
@@ -89,6 +90,7 @@ services:
       - debezium-source
       - pgAMI
       - MyAMI
+      - oracleAMI
 
 
 volumes:
