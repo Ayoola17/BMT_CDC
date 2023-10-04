@@ -3,4 +3,5 @@ cdc_pipeline/src/.env
 cdc.ipynb
 test.py
 oracle_pipeline/src/.env
+oracle_pipeline/src/.env
 cdc_pipeline/src/__pycache__
