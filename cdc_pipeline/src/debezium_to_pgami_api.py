@@ -44,9 +44,13 @@ class consumer_to_api:
     def consume_and_push(self):
         print('Consumer to pgSQL api up...')
         for message in self.consumer:
-            success = self.push_to_api(message.value)
-            if not success:
-                print(f"Failed to push message {message.value} after all retries")
+            if message.value["op"] == "d":
+                print('Deleted op skipping...')
+            else:
+
+                success = self.push_to_api(message.value)
+                if not success:
+                    print(f"Failed to push message {message.value} after all retries")
 
 
 kafka_bootstrap_servers = 'kafka:9092'
