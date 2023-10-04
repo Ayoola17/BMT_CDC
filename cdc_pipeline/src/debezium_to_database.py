@@ -181,6 +181,10 @@ class consumer_cdc:
             elif source == 'B':
                 # use mysql schema
                 if message["op"] == "d":
+                    print('deleted op skipping...')
+
+                    # uncomment to read deleted ops
+                    """
                     self.handle_db_operation(
                         op=message["op"],
                         source=source,
@@ -192,6 +196,7 @@ class consumer_cdc:
                         meter=message["before"]["METID"] if message["before"] else None,
                         readingtype=message["before"]["CNTYP"] if message["before"] else None
                     )
+                    """
                 else:
                     self.handle_db_operation(
                         op=message["op"],
@@ -209,6 +214,10 @@ class consumer_cdc:
             elif source == 'C':
                 #use postgres schema
                 if message["op"] == "d":
+                    print('deleted op skipping...')
+
+                    #uncomment to send delete op messages too
+                    """
                     self.handle_db_operation(
                         op=message["op"],
                         source=source,
@@ -220,6 +229,7 @@ class consumer_cdc:
                         meter=message["before"]["meter"] if message["before"] else None,
                         readingtype=message["before"]["costy"] if message["before"] else None
                     )
+                    """
                 else:
                     self.handle_db_operation(
                         op=message["op"],

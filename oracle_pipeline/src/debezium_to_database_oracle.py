@@ -25,7 +25,7 @@ mssql_connector = "mssql_config"
 def convert_to_datetime(reading_dt, source):
     # Convert nanoseconds to seconds
     if source == 'D':
-        seconds = reading_dt / 1e9
+        seconds = reading_dt / 1000000
         
         # Convert to datetime
         dt = datetime.utcfromtimestamp(seconds)
@@ -162,17 +162,7 @@ class consumer_cdc:
             if source == 'D':
                 # use mssql schema
                 if message["op"] == "d":
-                    self.handle_db_operation(
-                        op=message["op"],
-                        source=source,
-                        rowid=message["before"]["ROWNO"] if message["before"] else None,
-                        customerid=message["before"]["CUST"] if message["before"] else None,
-                        locationid=message["before"]["LOC"] if message["before"] else None,
-                        reading=message["before"]["CONSUMPTION"] if message["before"] else None,
-                        readingddt=message["before"]["CONSUMDT"] if message["before"] else None,
-                        meter=message["before"]["METER"] if message["before"] else None,
-                        readingtype=message["before"]["RDRTYPE"] if message["before"] else None
-                    )
+                    print('deleted op skipping...')
                 else:
                     self.handle_db_operation(
                         op=message["op"],
