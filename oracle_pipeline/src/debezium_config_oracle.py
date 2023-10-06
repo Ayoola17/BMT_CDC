@@ -1,24 +1,35 @@
 import os
 import requests
 
+from dotenv import load_dotenv
 
+# Load the environment variables from .env file
+load_dotenv()
+
+
+# Mysql server
+oracle_hostname = os.getenv('ORACLE_HOSTNAME')
+oracle_user = os.getenv('ORACLE_USER')
+oracle_port = os.getenv('ORACLE_PORT')
+oracle_password = os.getenv('ORACLE_PASSWORD')
+oracle_connector = "oracle-connector"
 
 
 def configure_debezium():
     # Define the Debezium source connector configuration fo mssql
     connector_config = [
     {
-    "name": "oracle-connector",
+    "name": oracle_connector,
     "config": {
     "connector.class": "io.debezium.connector.oracle.OracleConnector",
     "tasks.max": "1",
-    "database.hostname": "oracleami",
-    "database.port": "1521",
-    "database.user": "c##dbzuser",
-    "database.password": "dbz",
+    "database.hostname": oracle_hostname,
+    "database.port": oracle_port,
+    "database.user": oracle_user,
+    "database.password": oracle_password,
     "database.dbname": "ORCLCDB",
     "database.pdb.name": "ORCLPDB1",
-    "database.server.name": "oracleami",
+    "database.server.name": oracle_hostname,
     "topic.prefix": "oracle1",
     "slot.name":"slot1",
     "schema.history.internal.kafka.bootstrap.servers" : "kafka:9092", 
@@ -51,4 +62,4 @@ def configure_debezium():
             print(f"An error occurred: {err}")
 
 
-configure_debezium()
+
