@@ -9,7 +9,8 @@ class consumer_to_api:
         self.consumer = KafkaConsumer(
             kafka_topic,
             bootstrap_servers=kafka_bootstrap_servers,
-            value_deserializer=lambda x: json.loads(x.decode('utf-8'))
+            value_deserializer=lambda x: json.loads(x.decode('utf-8')),
+            group_id='pgami_api'
         )
         self.api_endpoint = api_endpoint
         self.backoff_times = [0, 3, 30, 60, 720, 3600]

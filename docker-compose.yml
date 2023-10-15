@@ -32,10 +32,12 @@ services:
       OFFSET_STORAGE_TOPIC: debezium_offset
       STATUS_STORAGE_TOPIC: debezium_status
       BOOTSTRAP_SERVERS: kafka:9092
-      CONNECT_REST_ADVERTISED_HOST_NAME: debezium-source
+      CONNECT_REST_ADVERTISED_HOST_NAME: debezium-source      
+      CONNECT_PLUGIN_PATH: "/kafka/connect,/kafka/libs/aiven-http-sink-connector"
 
     volumes:
       - ./ojdbc8.jar:/kafka/libs/ojdbc8.jar
+      - ./http-connector-for-apache-kafka-0.7.0-SNAPSHOT:/kafka/libs/aiven-http-sink-connector
 
   pgAMI:
     image: postgres:11
@@ -70,12 +72,12 @@ services:
       - "3306:3306"
 
 
-  oracleami:
-    image: ayoola17/oracleami_cdc:v1
-    ports:
-      - "1521:1521"  
-    volumes:
-      - oracle-data:/opt/oracle/oradata  
+  #oracleami:
+   # image: ayoola17/oracleami_cdc:v1
+    #ports:
+     # - "1521:1521"  
+    #volumes:
+     # - oracle-data:/opt/oracle/oradata  
 
 
 

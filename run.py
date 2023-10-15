@@ -57,7 +57,7 @@ def stop_threads(threads):
 if __name__ == "__main__":
 
     print("Waiting for 5 minutes before starting...")
-    time.sleep(300)
+    #time.sleep(300)
 
     connections = [
         mssql_connector, 
@@ -75,7 +75,8 @@ if __name__ == "__main__":
             configure_debezium()
         else:
             print(f"Connector '{connector_name}' already exists.")
-
+    
+    
     try:
         while True:
             print('Starting database and API sink threads...')
@@ -86,3 +87,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("Received keyboard interrupt. Stopping threads...")
         stop_threads(threads)
+    

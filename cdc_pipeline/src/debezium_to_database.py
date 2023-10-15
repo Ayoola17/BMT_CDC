@@ -140,15 +140,16 @@ class consumer_cdc:
             *self.topics,
             bootstrap_servers=self.bootstrap_servers,
             auto_offset_reset='latest',
-            value_deserializer=lambda x: x.decode('utf-8') if x else None
+            value_deserializer=lambda x: x.decode('utf-8') if x else None,
+            group_id='database_sink'
         )
 
         for msg in consumer:
             self.maybe_refresh_connection()
             source = self.source_and_topics[msg.topic]
             message = json.loads(msg.value)
-            #print(message)
-            #print('writing to metermaster table..')
+            print(message)
+            print('writing to metermaster table..')
 
             # Check streaming source
             if source == 'A':
