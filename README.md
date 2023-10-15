@@ -151,3 +151,25 @@ Please be cautious when deleting volumes, especially if they contain databases. 
 
 **NOTE**: Before running these commands, it's important to note that they will stop all your containers, remove all of them, and delete all your images.
 dir
+
+### Configuring Aiven Connector
+
+The Aiven connector plugin has been seamlessly integrated into the kafka-connectors plugins via the `aiven_config.py` script, simplifying the process of setting up a sink configuration.
+
+#### Adding a New Connection:
+1. **Launching Configuration Script**:
+   - Attach a shell to the Python app and execute the command: `python3 aiven_connector/aiven_config.py`.
+
+2. **Selecting a Topic**:
+   - The script will display a list of available topics, each associated with a unique number.
+   - Input the number corresponding to the topic you wish to subscribe to and press `Enter`.
+
+3. **Entering API Endpoint**:
+   - You'll then be prompted to input the API endpoint you wish to sink data to.
+   - Ensure that the API endpoint is valid before proceeding.
+
+4. **Naming the Connector**:
+   - Lastly, you'll be asked to provide a unique connector name.
+   - The connector name you provide will also serve as the group ID with a prefixed `Group_`. For instance, if you enter `sink_connector` as the connector name, the group ID will automatically be `Group_sink_connector`.
+
+The `aiven_config.py` script will utilize these three inputs to configure a sink connector to the specified API endpoint, subscribing to the selected topic. This streamlined process ensures a straightforward setup for routing data to your desired sink.
