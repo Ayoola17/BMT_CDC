@@ -173,3 +173,21 @@ The Aiven connector plugin has been seamlessly integrated into the kafka-connect
    - The connector name you provide will also serve as the group ID with a prefixed `Group_`. For instance, if you enter `sink_connector` as the connector name, the group ID will automatically be `Group_sink_connector`.
 
 The `aiven_config.py` script will utilize these three inputs to configure a sink connector to the specified API endpoint, subscribing to the selected topic. This streamlined process ensures a straightforward setup for routing data to your desired sink.
+
+
+### Deleting an Existing connector
+An existing connector can be deleted by utilizing the Kafka Connect REST API through `curl`.
+
+1. **Get list of existing connectors**:
+   - Attach a shell to the python app and excute the following command to get the list of all existing connectors `curl http://debezium-source:8083/connectors`.
+
+2. **Delete an existing connector**:
+   - After identifying the connector you would like to delete run the following command `curl -X DELETE http://debezium-source:8083/connectors/<connector-name>` make sure you replace `<connector-name>` with the name of the connector you would like to delete.
+
+3. **Checking connector status**:
+   - To check the status of an existing connector run the following command `curl http://debezium-source:8083/connectors/<connector-name>/status` make sure you replace the connector-name with the name of the connector you would like to check status.
+
+4. **Enabling and Disabling connector**:
+   - To Enable a connector run the following command `curl -X PUT http://debezium-source:8083/connectors/<connector-name>/resume`.
+   - To Disable a connector run the following command `curl -X PUT http://debezium-source:8083/connectors/<connector-name>/pause`.
+   make sure replace <connector-name> with the connector name you would like to enable and disable.
